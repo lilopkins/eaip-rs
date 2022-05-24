@@ -1,6 +1,11 @@
 [package]
 name = "eaip"
 version = "0.1.0"
+authors = ["Lily Hopkins <lily@hpkns.uk>"]
+description = "Fetch, parse and handle data from electronic aernautical information packages (eAIPs)."
+license = "MIT"
+homepage = "https://github.com/lilopkins/eaip-rs"
+repository = "https://github.com/lilopkins/eaip-rs"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
