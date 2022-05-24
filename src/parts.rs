@@ -2,14 +2,14 @@ use airac::{Datelike, AIRAC};
 use std::fmt::Display;
 
 /// The type of file to get from the eAIP
-pub enum Type {
+pub enum EAIPType {
     /// An HTML file
     HTML,
     /// A PDF file
     PDF,
 }
 
-impl Display for Type {
+impl Display for EAIPType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
@@ -128,7 +128,7 @@ pub fn generate_location<S: AsRef<str> + Display>(
     country_code: S,
     section: Part,
     locale: S,
-    typ: Type,
+    typ: EAIPType,
 ) -> String {
     format!(
         "/{}/eAIP/{}-{}-{}.{}",
@@ -142,7 +142,7 @@ pub fn generate_location_with_airac<S: AsRef<str> + Display>(
     country_code: S,
     section: Part,
     locale: S,
-    typ: Type,
+    typ: EAIPType,
 ) -> String {
     format!(
         "/{:04}-{:02}-{:02}-AIRAC{}",
@@ -165,7 +165,7 @@ mod tests {
                 "EG",
                 Part::Aerodromes(AD::Aerodromes("EGBO".to_string())),
                 "en-GB",
-                Type::HTML
+                EAIPType::HTML
             )
         );
     }

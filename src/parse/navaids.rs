@@ -1,10 +1,25 @@
 use table_extract::Table;
 
 use crate::{parse::get_clean_text, prelude::*};
+use async_trait::async_trait;
 
 /// A list of radio-based navaids that can be parsed with a [`Parser`] from data from
 /// an [`EAIP`](crate::eaip::EAIP).
 pub type Navaids = Vec<NavAid>;
+
+#[async_trait]
+impl FromEAIP for Navaids {
+    type Output = Self;
+
+    type Error = ();
+
+    async fn from_eaip(eaip: &EAIP, airac: airac::AIRAC) -> Result<Self::Output, Self::Error> {
+        let page = Part::EnRoute(ENR::RadioNavAids(1));
+        let data = eaip.get_page(airac, page, EAIPType::HTML).await.unwrap();
+        let navaids = Navaids::parse(&data).unwrap();
+        Ok(navaids)
+    }
+}
 
 impl<'a> Parser<'a> for Navaids {
     type Output = Self;

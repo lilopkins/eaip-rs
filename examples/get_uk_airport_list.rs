@@ -1,6 +1,5 @@
 use eaip::eaip::ais::GB;
-use eaip::parse::*;
-use eaip::parts::*;
+use eaip::prelude::*;
 
 #[tokio::main]
 async fn main() {
@@ -9,7 +8,7 @@ async fn main() {
     // Get
     let eaip = *GB;
     let egbo = Part::Aerodromes(AD::TableOfContents);
-    let data = eaip.get_current_page(egbo, Type::HTML).await.unwrap();
+    let data = eaip.get_current_page(egbo, EAIPType::HTML).await.unwrap();
 
     // Parse
     let toc = TableOfContents::parse(&data);

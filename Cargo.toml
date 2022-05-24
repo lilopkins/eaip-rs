@@ -12,11 +12,16 @@ required-features = ["examples"]
 name = "get_uk_navaids"
 required-features = ["examples"]
 
+[[example]]
+name = "get_uk_intersections"
+required-features = ["examples"]
+
 [features]
 examples = ["tokio", "tokio/rt", "tokio/rt-multi-thread", "tokio/macros", "pretty_env_logger"]
 
 [dependencies]
 airac = "0.1"
+async-trait = "0.1"
 ego-tree = "0.6.2"
 lazy_static = "1.4"
 log = "0.4"

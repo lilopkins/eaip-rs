@@ -71,3 +71,28 @@ impl Default for NavAidKind {
         Self::VOR
     }
 }
+
+/// An intersection (navigational waypoint).
+#[derive(Debug, Default, Clone, PartialEq)]
+pub struct Intersection {
+    pub(crate) designator: String,
+    pub(crate) latitude: f32,
+    pub(crate) longitude: f32,
+}
+
+impl Intersection {
+    /// The 5 letter intersection designator.
+    pub fn designator(&self) -> &String {
+        &self.designator
+    }
+
+    /// The latitude of the intersection.
+    pub fn latitude(&self) -> f32 {
+        self.latitude
+    }
+
+    /// The longitude of the intersection.
+    pub fn longitude(&self) -> f32 {
+        self.longitude
+    }
+}

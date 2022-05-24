@@ -1,12 +1,36 @@
 use std::collections::VecDeque;
 
+use airac::AIRAC;
+use async_trait::async_trait;
 use ego_tree::iter::{Edge, Traverse};
 use scraper::{Html, Node};
+
+use crate::eaip::EAIP;
 
 /// Parsers for a list of radio navaids.
 pub mod navaids;
 
-/// The trait for all  eAIP data parsers
+/// Parsers for a list of intersections.
+pub mod intersections;
+
+/// Fetch and parse some data from an eAIP
+#[async_trait]
+pub trait FromEAIP {
+    /// The type this parser will output when successful
+    type Output;
+    /// The error this parser will produce when failed
+    type Error;
+
+    /// Fetch the data from the given eAIP for the given AIRAC.
+    async fn from_eaip(eaip: &EAIP, airac: AIRAC) -> Result<Self::Output, Self::Error>;
+
+    /// Fetch the data from the given eAIP for the current AIRAC.
+    async fn from_current_eaip(eaip: &EAIP) -> Result<Self::Output, Self::Error> {
+        Self::from_eaip(eaip, AIRAC::current()).await
+    }
+}
+
+/// The trait for all eAIP data parsers
 pub trait Parser<'a> {
     /// The type this parser will output when successful
     type Output;
