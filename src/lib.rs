@@ -1,8 +1,6 @@
 #![warn(missing_docs)]
 
-//! # eAIP Parse
-//!
-//! A crate containing tools to parse HTML eAIPs, as XML versions are not often published.
+#![doc = include_str!("../README.md")]
 
 /// Parts of an eAIP
 pub mod parts;
