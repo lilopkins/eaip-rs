@@ -13,6 +13,9 @@ pub mod navaids;
 /// Parsers for a list of intersections.
 pub mod intersections;
 
+/// Parsers for a list of airways.
+pub mod airways;
+
 /// Fetch and parse some data from an eAIP
 #[async_trait]
 pub trait FromEAIP {

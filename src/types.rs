@@ -96,3 +96,46 @@ impl Intersection {
         self.longitude
     }
 }
+
+/// An airway.
+#[derive(Debug, Default, Clone, PartialEq)]
+pub struct Airway {
+    pub(crate) designator: String,
+    pub(crate) waypoints: Vec<AirwayWaypoint>,
+}
+
+/// A waypoint on an airway.
+#[derive(Debug, Default, Clone, PartialEq)]
+pub struct AirwayWaypoint {
+    pub(crate) designator: String,
+    pub(crate) lower_limit: String,
+    pub(crate) upper_limit: String,
+}
+
+impl AirwayWaypoint {
+    /// The airway waypoint designator. For intersections, this will be 5 characters long, for
+    /// radio navaids, this will be 3 characters long.
+    pub fn designator(&self) -> &String {
+        &self.designator
+    }
+
+    /// Is this waypoint a navaid?
+    pub fn is_navaid(&self) -> bool {
+        self.designator.len() == 3
+    }
+
+    /// Is this waypoint an intersection?
+    pub fn is_intersection(&self) -> bool {
+        self.designator.len() == 5
+    }
+
+    /// Get the lower airspace limit of this airway
+    pub fn lower_limit(&self) -> &String {
+        &self.lower_limit
+    }
+
+    /// Get the upper airspace limit of this airway
+    pub fn upper_limit(&self) -> &String {
+        &self.upper_limit
+    }
+}

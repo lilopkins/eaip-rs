@@ -16,6 +16,10 @@ required-features = ["examples"]
 name = "get_uk_intersections"
 required-features = ["examples"]
 
+[[example]]
+name = "get_uk_airways"
+required-features = ["examples"]
+
 [features]
 examples = ["tokio", "tokio/rt", "tokio/rt-multi-thread", "tokio/macros", "pretty_env_logger"]
 
@@ -26,6 +30,7 @@ ego-tree = "0.6.2"
 lazy_static = "1.4"
 log = "0.4"
 pretty_env_logger = { version = "0.4", optional = true }
+regex = "1.5"
 reqwest = "0.11"
 scraper = "0.13"
 table-extract = "0.2"
