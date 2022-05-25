@@ -36,8 +36,8 @@ impl<'a> Parser<'a> for Airways {
         let detail_selector = Selector::parse("tr.Table-row-type-3").unwrap();
         let upper_limit_selector = Selector::parse("td:nth-child(4) td.Upper").unwrap();
         let lower_limit_selector = Selector::parse("td:nth-child(4) td.Lower").unwrap();
-        // Capture either an intersection (group 1), or a navaid (group 2)
-        let intersection_or_vor_re = Regex::new(r#"(^[A-Z]{5})|\(([A-Z]{3})\)"#).unwrap();
+        let vor_re = Regex::new(r#"\(\s*([A-Z]{3})\s*\)"#).unwrap();
+        let intersection_re = Regex::new(r#"(^[A-Z]{5})"#).unwrap();
 
         for tbody in html.select(&tbody_selector) {
             let mut airway = Airway::default();
@@ -52,17 +52,19 @@ impl<'a> Parser<'a> for Airways {
 
             for waypoint in tbody.select(&waypoint_selector) {
                 let clean = get_clean_text(waypoint.inner_html());
-                let caps = intersection_or_vor_re.captures(&clean).unwrap();
-                if let Some(cap) = caps.get(2) {
-                    // VOR, must be checked first to make sure a VOR name isn't picked up as an intersection
+                let is_vor = vor_re.is_match(&clean);
+                let is_intersection = intersection_re.is_match(&clean);
+                if is_vor {
+                    let caps = vor_re.captures(&clean).unwrap();
                     airway.waypoints.push(AirwayWaypoint {
-                        designator: cap.as_str().to_string(),
+                        designator: caps[1].to_string(),
                         ..Default::default()
                     })
-                } else if let Some(cap) = caps.get(1) {
+                } else if is_intersection {
                     // Intersection
+                    let caps = intersection_re.captures(&clean).unwrap();
                     airway.waypoints.push(AirwayWaypoint {
-                        designator: cap.as_str().to_string(),
+                        designator: caps[1].to_string(),
                         ..Default::default()
                     })
                 }
