@@ -33,7 +33,7 @@ impl NavAid {
 
     /// The frequency of this radio navaid in mega-Hertz.
     pub fn frequency(&self) -> f32 {
-        self.frequency_khz as f32 / 100f32
+        self.frequency_khz as f32 / 1000f32
     }
 
     /// The latitude of this navaid.
@@ -102,6 +102,18 @@ impl Intersection {
 pub struct Airway {
     pub(crate) designator: String,
     pub(crate) waypoints: Vec<AirwayWaypoint>,
+}
+
+impl Airway {
+    /// The designator for the airway, starting with a 'U' if this is considered an upper airway
+    pub fn designator(&self) -> &String {
+        &self.designator
+    }
+
+    /// The waypoints (in order) of this airway
+    pub fn waypoints(&self) -> &Vec<AirwayWaypoint> {
+        &self.waypoints
+    }
 }
 
 /// A waypoint on an airway.
