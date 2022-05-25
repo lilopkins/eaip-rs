@@ -5,7 +5,7 @@ use crate::{parse::get_clean_text, prelude::*};
 use async_trait::async_trait;
 
 /// A list of airport ICAO codes.
-pub type Airports = Vec<String>;
+pub type Airports = Vec<Airport>;
 
 #[async_trait]
 impl FromEAIP for Airports {
@@ -13,10 +13,30 @@ impl FromEAIP for Airports {
 
     type Error = ();
 
+    /// **IMPORTANT**: For airports, `from_eaip` only fetches a list and populates ICAO code and name.
+    /// For more details, each airport must be fetched individually.
     async fn from_eaip(eaip: &EAIP, airac: airac::AIRAC) -> Result<Self::Output, Self::Error> {
         let page = Part::Aerodromes(AD::TableOfContents);
-        let _data = eaip.get_page(airac, page, EAIPType::HTML).await.unwrap();
-        todo!("Parse table of contents for list of airports")
+        let data = eaip.get_page(airac, page, EAIPType::HTML).await.unwrap();
+        let html = Html::parse_document(&data);
+
+        let toc_block_selector = Selector::parse(".toc-block:nth-of-type(2) > .toc-block a").unwrap();
+        let ad_re = Regex::new(r"^([A-Z]{4})\s*—?\s*(.*)$").unwrap();
+
+        let mut airports = Airports::new();
+
+        for ad_toc_block in html.select(&toc_block_selector) {
+            let clean = get_clean_text(ad_toc_block.inner_html());
+            if let Some(caps) = ad_re.captures(&clean) {
+                airports.push(Airport {
+                    icao: caps[1].to_string(),
+                    name: caps[2].to_string(),
+                    ..Default::default()
+                });
+            }
+        }
+
+        Ok(airports)
     }
 }
 
@@ -95,7 +115,6 @@ impl<'a> Parser<'a> for Airport {
                     } else if id.ends_with("-2.24") {
                         // .<icao>-ad-2.24 contains charts
                         // iterate through <td>, alternate between title and chart link
-                        // TODO: chart links can be relative - resolve this!
                         let mut chart_title = None;
                         for td in div.select(&td_selector) {
                             if chart_title.is_none() {

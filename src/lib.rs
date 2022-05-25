@@ -16,6 +16,7 @@ pub mod types;
 
 /// A convenience module that imports many useful parts of this crate.
 pub mod prelude {
+    pub use crate::parse::airports::Airports;
     pub use crate::parse::airways::Airways;
     pub use crate::parse::navaids::Navaids;
     pub use crate::parse::intersections::Intersections;

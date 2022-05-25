@@ -6,12 +6,8 @@ async fn main() {
     pretty_env_logger::init();
 
     // Get
-    let eaip = *GB;
-    let egbo = Part::Aerodromes(AD::TableOfContents);
-    let data = eaip.get_current_page(egbo, EAIPType::HTML).await.unwrap();
+    let eaip = &*GB;
+    let list = Airports::from_current_eaip(eaip).await.unwrap();
 
-    // Parse
-    let toc = TableOfContents::parse(&data);
-
-    println!("{:#?}", toc);
+    println!("{:#?}", list);
 }
