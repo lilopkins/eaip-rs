@@ -43,21 +43,21 @@ impl<'a> Parser<'a> for Intersections {
                     let clean = get_clean_text(cell.clone());
                     for line in clean.split("\n") {
                         if line.ends_with("N") {
-                            let lon = &line[0..(line.len() - 1)];
-                            let lon = lon.parse::<f32>().unwrap();
-                            intersection.longitude = lon / 10000f32;
-                        } else if line.ends_with("S") {
-                            let lon = &line[0..(line.len() - 1)];
-                            let lon = lon.parse::<f32>().unwrap();
-                            intersection.longitude = lon / -10000f32;
-                        } else if line.ends_with("E") {
                             let lat = &line[0..(line.len() - 1)];
                             let lat = lat.parse::<f32>().unwrap();
                             intersection.latitude = lat / 10000f32;
-                        } else if line.ends_with("W") {
+                        } else if line.ends_with("S") {
                             let lat = &line[0..(line.len() - 1)];
                             let lat = lat.parse::<f32>().unwrap();
                             intersection.latitude = lat / -10000f32;
+                        } else if line.ends_with("E") {
+                            let lon = &line[0..(line.len() - 1)];
+                            let lon = lon.parse::<f32>().unwrap();
+                            intersection.longitude = lon / 10000f32;
+                        } else if line.ends_with("W") {
+                            let lon = &line[0..(line.len() - 1)];
+                            let lon = lon.parse::<f32>().unwrap();
+                            intersection.longitude = lon / -10000f32;
                         }
                     }
                 }

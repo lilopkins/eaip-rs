@@ -23,6 +23,7 @@ impl Display for EAIPType {
 }
 
 /// The parts of an AIP.
+#[derive(Debug, Clone, PartialEq)]
 pub enum Part {
     /// General (GEN)
     General(GEN),
@@ -43,6 +44,7 @@ impl Display for Part {
 }
 
 /// The General parts of an AIP
+#[derive(Debug, Clone, PartialEq)]
 pub enum GEN {
     /// GEN 0
     Overview(usize),
@@ -69,6 +71,7 @@ impl Display for GEN {
 }
 
 /// The En-Route parts of an AIP
+#[derive(Debug, Clone, PartialEq)]
 pub enum ENR {
     /// ENR 0
     TableOfContents,
@@ -101,6 +104,7 @@ impl Display for ENR {
 }
 
 /// The Aerodromes parts of an AIP
+#[derive(Debug, Clone, PartialEq)]
 pub enum AD {
     /// AD 0
     TableOfContents,

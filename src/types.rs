@@ -1,3 +1,6 @@
+use crate::prelude::*;
+use airac::AIRAC;
+
 /// A radio-based navigational aid.
 #[derive(Debug, Default, Clone, PartialEq)]
 pub struct NavAid {
@@ -149,5 +152,91 @@ impl AirwayWaypoint {
     /// Get the upper airspace limit of this airway
     pub fn upper_limit(&self) -> &String {
         &self.upper_limit
+    }
+}
+
+/// Data about an airport
+#[derive(Debug, Default, Clone, PartialEq)]
+pub struct Airport {
+    pub(crate) icao: String,
+    pub(crate) name: String,
+    pub(crate) latitude: f32,
+    pub(crate) longitude: f32,
+    pub(crate) elevation: usize,
+    pub(crate) charts: Vec<Chart>,
+}
+
+impl Airport {
+    /// Fetch the data from the given eAIP for the given AIRAC.
+    pub async fn from_eaip(eaip: &EAIP, airac: AIRAC, aerodrome: String) -> Result<Self, ()> {
+        let egbo = Part::Aerodromes(AD::Aerodromes(aerodrome));
+        let data = eaip.get_current_page(egbo.clone(), EAIPType::HTML).await.unwrap();
+        let mut airport = Airport::parse(&data)?;
+        airport.canonicalise_chart_urls(eaip, airac, egbo);
+        Ok(airport)
+    }
+
+    /// Fetch the data from the given eAIP for the current AIRAC.
+    pub async fn from_current_eaip(eaip: &EAIP, aerodrome: String) -> Result<Self, ()> {
+        Self::from_eaip(eaip, AIRAC::current(), aerodrome).await
+    }
+
+    /// Canonicalise chart URLs so they aren't relative.
+    pub fn canonicalise_chart_urls(&mut self, eaip: &EAIP, airac: AIRAC, part: Part) {
+        let base_url = url::Url::parse(&eaip.generate_url(airac, part, EAIPType::HTML)).unwrap();
+        for chart in &mut self.charts {
+            if url::Url::parse(&chart.url) == Err(url::ParseError::RelativeUrlWithoutBase) {
+                chart.url = base_url.join(&chart.url).unwrap().to_string();
+            }
+        }
+    }
+
+    /// The ICAO code of the aerodrome
+    pub fn icao(&self) -> &String {
+        &self.icao
+    }
+
+    /// The name of the aerodrome
+    pub fn name(&self) -> &String {
+        &self.name
+    }
+
+    /// The aerodrome's latitude
+    pub fn latitude(&self) -> f32 {
+        self.latitude
+    }
+
+    /// The aerodrome's longitude
+    pub fn longitude(&self) -> f32 {
+        self.longitude
+    }
+
+    /// The aerodrome's elevation
+    pub fn elevation(&self) -> usize {
+        self.elevation
+    }
+
+    /// Charts relating to the aerodrome
+    pub fn charts(&self) -> &Vec<Chart> {
+        &self.charts
+    }
+}
+
+/// A chart
+#[derive(Debug, Default, Clone, PartialEq)]
+pub struct Chart {
+    pub(crate) title: String,
+    pub(crate) url: String,
+}
+
+impl Chart {
+    /// The title of the chart
+    pub fn title(&self) -> &String {
+        &self.title
+    }
+
+    /// The URL of the chart
+    pub fn url(&self) -> &String {
+        &self.url
     }
 }

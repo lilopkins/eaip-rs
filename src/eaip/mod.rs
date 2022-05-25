@@ -37,12 +37,17 @@ impl EAIP {
         part: Part,
         typ: EAIPType,
     ) -> Result<String, reqwest::Error> {
-        let url = format!(
+        let url = self.generate_url(airac, part, typ);
+        log::debug!("Getting page: {}", url);
+        Ok(reqwest::get(url).await?.text().await?)
+    }
+
+    /// Generate a URL within this eAIP
+    pub fn generate_url(&self, airac: AIRAC, part: Part, typ: EAIPType) -> String {
+        format!(
             "{}{}",
             self.base_uri,
             generate_location_with_airac(airac, self.country_code.clone(), part, self.locale.clone(), typ)
-        );
-        log::debug!("Getting page: {}", url);
-        Ok(reqwest::get(url).await?.text().await?)
+        )
     }
 }

@@ -14,6 +14,10 @@ name = "get_uk_airport_list"
 required-features = ["examples"]
 
 [[example]]
+name = "get_uk_airport_info"
+required-features = ["examples"]
+
+[[example]]
 name = "get_uk_navaids"
 required-features = ["examples"]
 
@@ -40,3 +44,4 @@ reqwest = "0.11"
 scraper = "0.13"
 table-extract = "0.2"
 tokio = { version = "1.18", optional = true }
+url = "2.2"
