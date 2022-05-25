@@ -76,7 +76,7 @@ impl<'a> Parser<'a> for Airways {
                     let upper = get_clean_text(upper.inner_html());
                     airway.waypoints[i].upper_limit = upper;
                 }
-                
+
                 if let Some(lower) = detail.select(&lower_limit_selector).next() {
                     let lower = get_clean_text(lower.inner_html());
                     airway.waypoints[i].lower_limit = lower;

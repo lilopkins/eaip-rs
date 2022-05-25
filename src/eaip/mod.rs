@@ -25,7 +25,11 @@ impl EAIP {
     }
 
     /// Get a page from an eAIP for the current AIRAC.
-    pub async fn get_current_page(&self, part: Part, typ: EAIPType) -> Result<String, reqwest::Error> {
+    pub async fn get_current_page(
+        &self,
+        part: Part,
+        typ: EAIPType,
+    ) -> Result<String, reqwest::Error> {
         let airac = AIRAC::current();
         Ok(self.get_page(airac, part, typ).await?)
     }
@@ -47,7 +51,13 @@ impl EAIP {
         format!(
             "{}{}",
             self.base_uri,
-            generate_location_with_airac(airac, self.country_code.clone(), part, self.locale.clone(), typ)
+            generate_location_with_airac(
+                airac,
+                self.country_code.clone(),
+                part,
+                self.locale.clone(),
+                typ
+            )
         )
     }
 }

@@ -1,5 +1,4 @@
 #![warn(missing_docs)]
-
 #![doc = include_str!("../README.md")]
 
 /// Parts of an eAIP.
@@ -18,11 +17,11 @@ pub mod types;
 pub mod prelude {
     pub use crate::parse::airports::Airports;
     pub use crate::parse::airways::Airways;
-    pub use crate::parse::navaids::Navaids;
     pub use crate::parse::intersections::Intersections;
+    pub use crate::parse::navaids::Navaids;
     pub use crate::parse::{FromEAIP, Parser};
-    
+
     pub use crate::eaip::EAIP;
-    pub use crate::types::*;
     pub use crate::parts::*;
+    pub use crate::types::*;
 }

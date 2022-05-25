@@ -170,7 +170,10 @@ impl Airport {
     /// Fetch the data from the given eAIP for the given AIRAC.
     pub async fn from_eaip(eaip: &EAIP, airac: AIRAC, aerodrome: String) -> Result<Self, ()> {
         let egbo = Part::Aerodromes(AD::Aerodromes(aerodrome));
-        let data = eaip.get_current_page(egbo.clone(), EAIPType::HTML).await.unwrap();
+        let data = eaip
+            .get_current_page(egbo.clone(), EAIPType::HTML)
+            .await
+            .unwrap();
         let mut airport = Airport::parse(&data)?;
         airport.canonicalise_chart_urls(eaip, airac, egbo);
         Ok(airport)

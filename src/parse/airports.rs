@@ -1,5 +1,5 @@
 use regex::Regex;
-use scraper::{Selector, Html};
+use scraper::{Html, Selector};
 
 use crate::{parse::get_clean_text, prelude::*};
 use async_trait::async_trait;
@@ -20,7 +20,8 @@ impl FromEAIP for Airports {
         let data = eaip.get_page(airac, page, EAIPType::HTML).await.unwrap();
         let html = Html::parse_document(&data);
 
-        let toc_block_selector = Selector::parse(".toc-block:nth-of-type(2) > .toc-block a").unwrap();
+        let toc_block_selector =
+            Selector::parse(".toc-block:nth-of-type(2) > .toc-block a").unwrap();
         let ad_re = Regex::new(r"^([A-Z]{4})\s*—?\s*(.*)$").unwrap();
 
         let mut airports = Airports::new();
@@ -62,7 +63,9 @@ impl<'a> Parser<'a> for Airport {
         for main_elem in html.select(&div_selector) {
             // .TitleAD contains ICAO code and Airport Name
             let title_elem = main_elem.select(&title_ad_selector).next();
-            if title_elem.is_none() { continue; }
+            if title_elem.is_none() {
+                continue;
+            }
             let title_elem = title_elem.unwrap();
             let clean = get_clean_text(title_elem.inner_html());
             let title_parts = clean.split("—").collect::<Vec<&str>>();
@@ -79,10 +82,10 @@ impl<'a> Parser<'a> for Airport {
                         let first_row = div.select(&first_row_selector).next().unwrap();
                         let latlong = first_row.select(&data_td_selector).next().unwrap();
                         let clean = get_clean_text(latlong.inner_html());
-                        
+
                         let long_cap = longitude_re.captures(&clean).unwrap();
                         let lat_cap = latitude_re.captures(&clean).unwrap();
-                        
+
                         let lat = &lat_cap[1];
                         if lat.ends_with("N") {
                             let lat = &lat[0..(lat.len() - 1)];
@@ -93,7 +96,7 @@ impl<'a> Parser<'a> for Airport {
                             let lat = lat.parse::<f32>().unwrap();
                             airport.latitude = lat / -10000f32;
                         }
-                        
+
                         let long = &long_cap[1];
                         if long.ends_with("E") {
                             let long = &long[0..(long.len() - 1)];
@@ -108,7 +111,7 @@ impl<'a> Parser<'a> for Airport {
                         let third_row = div.select(&third_row_selector).next().unwrap();
                         let elevation = third_row.select(&data_td_selector).next().unwrap();
                         let clean = get_clean_text(elevation.inner_html());
-                        
+
                         let elev_cap = elevation_re.captures(&clean).unwrap();
                         let elev = &elev_cap[1];
                         airport.elevation = elev.parse().unwrap();
