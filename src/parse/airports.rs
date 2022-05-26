@@ -11,11 +11,9 @@ pub type Airports = Vec<Airport>;
 impl FromEAIP for Airports {
     type Output = Self;
 
-    type Error = ();
-
     /// **IMPORTANT**: For airports, `from_eaip` only fetches a list and populates ICAO code and name.
     /// For more details, each airport must be fetched individually.
-    async fn from_eaip(eaip: &EAIP, airac: airac::AIRAC) -> Result<Self::Output, Self::Error> {
+    async fn from_eaip(eaip: &EAIP, airac: airac::AIRAC) -> Result<Self::Output> {
         let page = Part::Aerodromes(AD::TableOfContents);
         let data = eaip.get_page(airac, page, EAIPType::HTML).await.unwrap();
         let html = Html::parse_document(&data);
@@ -43,9 +41,8 @@ impl FromEAIP for Airports {
 
 impl<'a> Parser<'a> for Airport {
     type Output = Self;
-    type Error = ();
 
-    fn parse(data: &'a str) -> Result<Self::Output, Self::Error> {
+    fn parse(data: &'a str) -> Result<Self::Output> {
         let mut airport = Self::default();
 
         let html = Html::parse_document(data);

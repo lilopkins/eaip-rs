@@ -5,7 +5,7 @@ use async_trait::async_trait;
 use ego_tree::iter::{Edge, Traverse};
 use scraper::{Html, Node};
 
-use crate::eaip::EAIP;
+use crate::prelude::*;
 
 /// Parsers for a list of radio navaids.
 pub mod navaids;
@@ -24,14 +24,12 @@ pub mod airports;
 pub trait FromEAIP {
     /// The type this parser will output when successful
     type Output;
-    /// The error this parser will produce when failed
-    type Error;
 
     /// Fetch the data from the given eAIP for the given AIRAC.
-    async fn from_eaip(eaip: &EAIP, airac: AIRAC) -> Result<Self::Output, Self::Error>;
+    async fn from_eaip(eaip: &EAIP, airac: AIRAC) -> Result<Self::Output>;
 
     /// Fetch the data from the given eAIP for the current AIRAC.
-    async fn from_current_eaip(eaip: &EAIP) -> Result<Self::Output, Self::Error> {
+    async fn from_current_eaip(eaip: &EAIP) -> Result<Self::Output> {
         Self::from_eaip(eaip, AIRAC::current()).await
     }
 }
@@ -40,11 +38,9 @@ pub trait FromEAIP {
 pub trait Parser<'a> {
     /// The type this parser will output when successful
     type Output;
-    /// The error this parser will produce when failed
-    type Error;
 
     /// Parse the given HTML data into the type given by `Self::Output`.
-    fn parse(data: &'a str) -> Result<Self::Output, Self::Error>;
+    fn parse(data: &'a str) -> Result<Self::Output>;
 }
 
 pub(crate) fn get_clean_text(html_frag: String) -> String {

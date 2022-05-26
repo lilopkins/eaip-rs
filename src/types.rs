@@ -168,19 +168,19 @@ pub struct Airport {
 
 impl Airport {
     /// Fetch the data from the given eAIP for the given AIRAC.
-    pub async fn from_eaip(eaip: &EAIP, airac: AIRAC, aerodrome: String) -> Result<Self, ()> {
+    pub async fn from_eaip(eaip: &EAIP, airac: AIRAC, aerodrome: String) -> Result<Self> {
         let egbo = Part::Aerodromes(AD::Aerodromes(aerodrome));
         let data = eaip
             .get_current_page(egbo.clone(), EAIPType::HTML)
             .await
             .unwrap();
-        let mut airport = Airport::parse(&data)?;
+        let mut airport = Airport::parse(&data).unwrap();
         airport.canonicalise_chart_urls(eaip, airac, egbo);
         Ok(airport)
     }
 
     /// Fetch the data from the given eAIP for the current AIRAC.
-    pub async fn from_current_eaip(eaip: &EAIP, aerodrome: String) -> Result<Self, ()> {
+    pub async fn from_current_eaip(eaip: &EAIP, aerodrome: String) -> Result<Self> {
         Self::from_eaip(eaip, AIRAC::current(), aerodrome).await
     }
 

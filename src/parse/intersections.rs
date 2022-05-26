@@ -11,9 +11,7 @@ pub type Intersections = Vec<Intersection>;
 impl FromEAIP for Intersections {
     type Output = Self;
 
-    type Error = ();
-
-    async fn from_eaip(eaip: &EAIP, airac: airac::AIRAC) -> Result<Self::Output, Self::Error> {
+    async fn from_eaip(eaip: &EAIP, airac: airac::AIRAC) -> Result<Self::Output> {
         let page = Part::EnRoute(ENR::RadioNavAids(4));
         let data = eaip.get_page(airac, page, EAIPType::HTML).await.unwrap();
         let intersections = Intersections::parse(&data).unwrap();
@@ -23,9 +21,8 @@ impl FromEAIP for Intersections {
 
 impl<'a> Parser<'a> for Intersections {
     type Output = Self;
-    type Error = ();
 
-    fn parse(data: &'a str) -> Result<Self::Output, Self::Error> {
+    fn parse(data: &'a str) -> Result<Self::Output> {
         let table = Table::find_first(data).unwrap();
 
         let mut intersections = Vec::new();

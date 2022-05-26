@@ -11,9 +11,7 @@ pub type Navaids = Vec<NavAid>;
 impl FromEAIP for Navaids {
     type Output = Self;
 
-    type Error = ();
-
-    async fn from_eaip(eaip: &EAIP, airac: airac::AIRAC) -> Result<Self::Output, Self::Error> {
+    async fn from_eaip(eaip: &EAIP, airac: airac::AIRAC) -> Result<Self::Output> {
         let page = Part::EnRoute(ENR::RadioNavAids(1));
         let data = eaip.get_page(airac, page, EAIPType::HTML).await.unwrap();
         let navaids = Navaids::parse(&data).unwrap();
@@ -23,9 +21,8 @@ impl FromEAIP for Navaids {
 
 impl<'a> Parser<'a> for Navaids {
     type Output = Self;
-    type Error = ();
 
-    fn parse(data: &'a str) -> Result<Self::Output, Self::Error> {
+    fn parse(data: &'a str) -> Result<Self::Output> {
         let table = Table::find_first(data).unwrap();
 
         let mut navaids = Vec::new();

@@ -161,11 +161,123 @@ pub fn generate_location_with_airac<S: AsRef<str> + Display>(
 mod tests {
     use crate::parts::*;
 
+    macro_rules! test_route {
+        ($uri: expr, $route: expr) => {
+            assert_eq!(
+                $uri,
+                generate_location("EG", $route, "en-GB", EAIPType::HTML)
+            );
+        };
+    }
+
     #[test]
     fn test_generate_location() {
-        assert_eq!(
+        test_route!(
             "/html/eAIP/EG-AD-2.EGBO-en-GB.html",
+            Part::Aerodromes(AD::Aerodromes("EGBO".to_string()))
+        );
+        test_route!(
+            "/html/eAIP/EG-GEN-0.1-en-GB.html",
+            Part::General(GEN::Overview(1))
+        );
+        test_route!(
+            "/html/eAIP/EG-ENR-0.1-en-GB.html",
+            Part::EnRoute(ENR::TableOfContents)
+        );
+    }
+
+    #[test]
+    fn test_general() {
+        test_route!(
+            "/html/eAIP/EG-GEN-0.1-en-GB.html",
+            Part::General(GEN::Overview(1))
+        );
+        test_route!(
+            "/html/eAIP/EG-GEN-1.1-en-GB.html",
+            Part::General(GEN::NationalRegulations(1))
+        );
+        test_route!(
+            "/html/eAIP/EG-GEN-2.1-en-GB.html",
+            Part::General(GEN::TablesAndCodes(1))
+        );
+        test_route!(
+            "/html/eAIP/EG-GEN-3.1-en-GB.html",
+            Part::General(GEN::Services(1))
+        );
+        test_route!(
+            "/html/eAIP/EG-GEN-4.1-en-GB.html",
+            Part::General(GEN::Charges(1))
+        );
+    }
+
+    #[test]
+    fn test_enroute() {
+        test_route!(
+            "/html/eAIP/EG-ENR-0.1-en-GB.html",
+            Part::EnRoute(ENR::TableOfContents)
+        );
+        test_route!(
+            "/html/eAIP/EG-ENR-1.1-en-GB.html",
+            Part::EnRoute(ENR::GeneralRules(1))
+        );
+        test_route!(
+            "/html/eAIP/EG-ENR-2.1-en-GB.html",
+            Part::EnRoute(ENR::ATSAirspace(1))
+        );
+        test_route!(
+            "/html/eAIP/EG-ENR-3.1-en-GB.html",
+            Part::EnRoute(ENR::ATSRoutes(1))
+        );
+        test_route!(
+            "/html/eAIP/EG-ENR-4.1-en-GB.html",
+            Part::EnRoute(ENR::RadioNavAids(1))
+        );
+        test_route!(
+            "/html/eAIP/EG-ENR-5.1-en-GB.html",
+            Part::EnRoute(ENR::NavWarnings(1))
+        );
+        test_route!("/html/eAIP/EG-ENR-6-en-GB.html", Part::EnRoute(ENR::Charts));
+    }
+
+    #[test]
+    fn test_aerodromes() {
+        test_route!(
+            "/html/eAIP/EG-AD-0.1-en-GB.html",
+            Part::Aerodromes(AD::TableOfContents)
+        );
+        test_route!(
+            "/html/eAIP/EG-AD-1.1-en-GB.html",
+            Part::Aerodromes(AD::Introduction(1))
+        );
+        test_route!(
+            "/html/eAIP/EG-AD-2.ZZZZ-en-GB.html",
+            Part::Aerodromes(AD::Aerodromes("ZZZZ".to_string()))
+        );
+        test_route!(
+            "/html/eAIP/EG-AD-3.ZZZZ-en-GB.html",
+            Part::Aerodromes(AD::Heliports("ZZZZ".to_string()))
+        );
+    }
+
+    #[test]
+    fn test_generate_location_pdf() {
+        assert_eq!(
+            "/pdf/eAIP/EG-AD-2.EGBO-en-GB.pdf",
             generate_location(
+                "EG",
+                Part::Aerodromes(AD::Aerodromes("EGBO".to_string())),
+                "en-GB",
+                EAIPType::PDF
+            )
+        );
+    }
+
+    #[test]
+    fn test_generate_location_with_airac() {
+        assert_eq!(
+            "/2022-05-19-AIRAC/html/eAIP/EG-AD-2.EGBO-en-GB.html",
+            generate_location_with_airac(
+                airac::AIRAC::from_ymd(2022, 05, 19),
                 "EG",
                 Part::Aerodromes(AD::Aerodromes("EGBO".to_string())),
                 "en-GB",

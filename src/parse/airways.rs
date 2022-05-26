@@ -12,9 +12,7 @@ pub type Airways = Vec<Airway>;
 impl FromEAIP for Airways {
     type Output = Self;
 
-    type Error = ();
-
-    async fn from_eaip(eaip: &EAIP, airac: airac::AIRAC) -> Result<Self::Output, Self::Error> {
+    async fn from_eaip(eaip: &EAIP, airac: airac::AIRAC) -> Result<Self::Output> {
         let page = Part::EnRoute(ENR::ATSRoutes(3));
         let data = eaip.get_page(airac, page, EAIPType::HTML).await.unwrap();
         let airways = Airways::parse(&data).unwrap();
@@ -24,9 +22,8 @@ impl FromEAIP for Airways {
 
 impl<'a> Parser<'a> for Airways {
     type Output = Self;
-    type Error = ();
 
-    fn parse(data: &'a str) -> Result<Self::Output, Self::Error> {
+    fn parse(data: &'a str) -> Result<Self::Output> {
         let mut airways = Vec::new();
 
         let html = Html::parse_document(data);

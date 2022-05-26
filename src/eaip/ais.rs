@@ -14,12 +14,12 @@ impl NamedEAIP {
     pub fn country(&self) -> &'static str {
         self.country
     }
-    
+
     /// Presentable source name for this AIS.
     pub fn name(&self) -> &'static str {
         self.name
     }
-    
+
     /// AIS source.
     pub fn eaip(&self) -> &EAIP {
         &self.eaip

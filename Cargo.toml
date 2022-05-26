@@ -1,6 +1,6 @@
 [package]
 name = "eaip"
-version = "0.2.0"
+version = "0.3.0"
 authors = ["Lily Hopkins <lily@hpkns.uk>"]
 description = "Fetch, parse and handle data from electronic aernautical information packages (eAIPs)."
 license = "MIT"
@@ -30,10 +30,12 @@ name = "get_uk_airways"
 required-features = ["examples"]
 
 [features]
-examples = ["tokio", "tokio/rt", "tokio/rt-multi-thread", "tokio/macros", "pretty_env_logger"]
+examples = ["tokio", "tokio/rt", "tokio/rt-multi-thread", "tokio/macros", "pretty_env_logger", "anyhow"]
+test-online = [ ]
 
 [dependencies]
 airac = "0.1"
+anyhow = { version = "1.0.57", optional = true }
 async-trait = "0.1"
 ego-tree = "0.6.2"
 lazy_static = "1.4"
@@ -45,3 +47,6 @@ scraper = "0.13"
 table-extract = "0.2"
 tokio = { version = "1.18", optional = true }
 url = "2.2"
+
+[dev-dependencies]
+tokio = { version = "1.18", features = [ "rt", "rt-multi-thread", "macros" ] }
