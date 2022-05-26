@@ -4,6 +4,8 @@ use scraper::{Html, Selector};
 use crate::{parse::get_clean_text, prelude::*};
 use async_trait::async_trait;
 
+use super::{parse_elevation, parse_latlong};
+
 /// A list of airport ICAO codes.
 pub type Airports = Vec<Airport>;
 
@@ -15,7 +17,7 @@ impl FromEAIP for Airports {
     /// For more details, each airport must be fetched individually.
     async fn from_eaip(eaip: &EAIP, airac: airac::AIRAC) -> Result<Self::Output> {
         let page = Part::Aerodromes(AD::TableOfContents);
-        let data = eaip.get_page(airac, page, EAIPType::HTML).await.unwrap();
+        let data = eaip.get_page(airac, page, EAIPType::HTML).await?;
         let html = Html::parse_document(&data);
 
         let toc_block_selector =
@@ -53,7 +55,6 @@ impl<'a> Parser<'a> for Airport {
         let data_td_selector = Selector::parse("td:last-child").unwrap();
         let td_selector = Selector::parse("td").unwrap();
         let a_selector = Selector::parse("a").unwrap();
-        let elevation_re = Regex::new(r"(\d+)\s*(?:FT|ft)").unwrap();
         let latitude_re = Regex::new(r"([0-9]{6}[NS])").unwrap();
         let longitude_re = Regex::new(r"([0-9]{7}[EW])").unwrap();
 
@@ -84,34 +85,21 @@ impl<'a> Parser<'a> for Airport {
                         let lat_cap = latitude_re.captures(&clean).unwrap();
 
                         let lat = &lat_cap[1];
-                        if lat.ends_with('N') {
-                            let lat = &lat[0..(lat.len() - 1)];
-                            let lat = lat.parse::<f32>().unwrap();
-                            airport.latitude = lat / 10000f32;
-                        } else if lat.ends_with('S') {
-                            let lat = &lat[0..(lat.len() - 1)];
-                            let lat = lat.parse::<f32>().unwrap();
-                            airport.latitude = lat / -10000f32;
+                        let (lat, _lon) = parse_latlong(lat)?;
+                        if let Some(lat) = lat {
+                            airport.latitude = lat;
                         }
 
                         let long = &long_cap[1];
-                        if long.ends_with('E') {
-                            let long = &long[0..(long.len() - 1)];
-                            let long = long.parse::<f32>().unwrap();
-                            airport.longitude = long / 10000f32;
-                        } else if long.ends_with('W') {
-                            let long = &long[0..(long.len() - 1)];
-                            let long = long.parse::<f32>().unwrap();
-                            airport.longitude = long / -10000f32;
+                        let (_lat, lon) = parse_latlong(long)?;
+                        if let Some(lon) = lon {
+                            airport.longitude = lon;
                         }
 
                         let third_row = div.select(&third_row_selector).next().unwrap();
                         let elevation = third_row.select(&data_td_selector).next().unwrap();
                         let clean = get_clean_text(elevation.inner_html());
-
-                        let elev_cap = elevation_re.captures(&clean).unwrap();
-                        let elev = &elev_cap[1];
-                        airport.elevation = elev.parse().unwrap();
+                        airport.elevation = parse_elevation(&clean)?;
                     } else if id.ends_with("-2.24") {
                         // .<icao>-ad-2.24 contains charts
                         // iterate through <td>, alternate between title and chart link

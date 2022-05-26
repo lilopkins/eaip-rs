@@ -14,8 +14,8 @@ impl FromEAIP for Airways {
 
     async fn from_eaip(eaip: &EAIP, airac: airac::AIRAC) -> Result<Self::Output> {
         let page = Part::EnRoute(ENR::ATSRoutes(3));
-        let data = eaip.get_page(airac, page, EAIPType::HTML).await.unwrap();
-        let airways = Airways::parse(&data).unwrap();
+        let data = eaip.get_page(airac, page, EAIPType::HTML).await?;
+        let airways = Airways::parse(&data)?;
         Ok(airways)
     }
 }

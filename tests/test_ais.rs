@@ -1,7 +1,7 @@
 #[cfg(feature = "test-online")]
-use eaip::prelude::*;
-#[cfg(feature = "test-online")]
 use airac::AIRAC;
+#[cfg(feature = "test-online")]
+use eaip::prelude::*;
 
 macro_rules! test_ais {
     ($id: ident, $ais: expr) => {
@@ -23,7 +23,8 @@ macro_rules! test_ais {
             let airports = Airports::from_eaip(eaip, airac.clone()).await?;
             if let Some(airport) = airports.get(0) {
                 eprintln!("Test individual airport");
-                let _airport = Airport::from_eaip(eaip, airac.clone(), airport.icao().to_string()).await?;
+                let _airport =
+                    Airport::from_eaip(eaip, airac.clone(), airport.icao().to_string()).await?;
             }
 
             eprintln!("Test next AIRAC");
@@ -38,7 +39,8 @@ macro_rules! test_ais {
             let airports = Airports::from_eaip(eaip, airac.clone()).await?;
             if let Some(airport) = airports.get(0) {
                 eprintln!("Test individual airport");
-                let _airport = Airport::from_eaip(eaip, airac.clone(), airport.icao().to_string()).await?;
+                let _airport =
+                    Airport::from_eaip(eaip, airac.clone(), airport.icao().to_string()).await?;
             }
 
             Ok(())
@@ -46,5 +48,5 @@ macro_rules! test_ais {
     };
 }
 
-test_ais!(test_nats, &*ais::GB);
-test_ais!(test_lvnl, &*ais::NL);
+test_ais!(test_gb, &*ais::GB);
+test_ais!(test_nl, &*ais::NL);

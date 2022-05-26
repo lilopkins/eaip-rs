@@ -8,8 +8,8 @@ pub struct NavAid {
     pub(crate) name: String,
     pub(crate) kind: NavAidKind,
     pub(crate) frequency_khz: usize,
-    pub(crate) latitude: f32,
-    pub(crate) longitude: f32,
+    pub(crate) latitude: f64,
+    pub(crate) longitude: f64,
     pub(crate) elevation: usize,
 }
 
@@ -40,12 +40,12 @@ impl NavAid {
     }
 
     /// The latitude of this navaid.
-    pub fn latitude(&self) -> f32 {
+    pub fn latitude(&self) -> f64 {
         self.latitude
     }
 
     /// The longitude of this navaid.
-    pub fn longitude(&self) -> f32 {
+    pub fn longitude(&self) -> f64 {
         self.longitude
     }
 
@@ -79,8 +79,8 @@ impl Default for NavAidKind {
 #[derive(Debug, Default, Clone, PartialEq)]
 pub struct Intersection {
     pub(crate) designator: String,
-    pub(crate) latitude: f32,
-    pub(crate) longitude: f32,
+    pub(crate) latitude: f64,
+    pub(crate) longitude: f64,
 }
 
 impl Intersection {
@@ -90,12 +90,12 @@ impl Intersection {
     }
 
     /// The latitude of the intersection.
-    pub fn latitude(&self) -> f32 {
+    pub fn latitude(&self) -> f64 {
         self.latitude
     }
 
     /// The longitude of the intersection.
-    pub fn longitude(&self) -> f32 {
+    pub fn longitude(&self) -> f64 {
         self.longitude
     }
 }
@@ -160,8 +160,8 @@ impl AirwayWaypoint {
 pub struct Airport {
     pub(crate) icao: String,
     pub(crate) name: String,
-    pub(crate) latitude: f32,
-    pub(crate) longitude: f32,
+    pub(crate) latitude: f64,
+    pub(crate) longitude: f64,
     pub(crate) elevation: usize,
     pub(crate) charts: Vec<Chart>,
 }
@@ -170,12 +170,9 @@ impl Airport {
     /// Fetch the data from the given eAIP for the given AIRAC.
     pub async fn from_eaip(eaip: &EAIP, airac: AIRAC, aerodrome: String) -> Result<Self> {
         let egbo = Part::Aerodromes(AD::Aerodromes(aerodrome));
-        let data = eaip
-            .get_current_page(egbo.clone(), EAIPType::HTML)
-            .await
-            .unwrap();
-        let mut airport = Airport::parse(&data).unwrap();
-        airport.canonicalise_chart_urls(eaip, airac, egbo);
+        let data = eaip.get_current_page(egbo.clone(), EAIPType::HTML).await?;
+        let mut airport = Airport::parse(&data)?;
+        airport.canonicalise_chart_urls(eaip, airac, egbo)?;
         Ok(airport)
     }
 
@@ -185,13 +182,22 @@ impl Airport {
     }
 
     /// Canonicalise chart URLs so they aren't relative.
-    pub fn canonicalise_chart_urls(&mut self, eaip: &EAIP, airac: AIRAC, part: Part) {
-        let base_url = url::Url::parse(&eaip.generate_url(airac, part, EAIPType::HTML)).unwrap();
+    pub fn canonicalise_chart_urls(&mut self, eaip: &EAIP, airac: AIRAC, part: Part) -> Result<()> {
+        let base_url = url::Url::parse(&eaip.generate_url(airac, part, EAIPType::HTML));
+        if base_url.is_err() {
+            return Err(Error::EAIPInvalidBaseURL(base_url.unwrap_err()));
+        }
+        let base_url = base_url.unwrap();
         for chart in &mut self.charts {
             if url::Url::parse(&chart.url) == Err(url::ParseError::RelativeUrlWithoutBase) {
-                chart.url = base_url.join(&chart.url).unwrap().to_string();
+                if let Ok(joined_url) = base_url.join(&chart.url) {
+                    chart.url = joined_url.to_string();
+                } else {
+                    return Err(Error::ChartURLMalformed(chart.url.clone()));
+                }
             }
         }
+        Ok(())
     }
 
     /// The ICAO code of the aerodrome
@@ -205,12 +211,12 @@ impl Airport {
     }
 
     /// The aerodrome's latitude
-    pub fn latitude(&self) -> f32 {
+    pub fn latitude(&self) -> f64 {
         self.latitude
     }
 
     /// The aerodrome's longitude
-    pub fn longitude(&self) -> f32 {
+    pub fn longitude(&self) -> f64 {
         self.longitude
     }
 

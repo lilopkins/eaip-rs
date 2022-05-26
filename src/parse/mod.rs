@@ -3,6 +3,7 @@ use std::collections::VecDeque;
 use airac::AIRAC;
 use async_trait::async_trait;
 use ego_tree::iter::{Edge, Traverse};
+use regex::Regex;
 use scraper::{Html, Node};
 
 use crate::prelude::*;
@@ -43,6 +44,7 @@ pub trait Parser<'a> {
     fn parse(data: &'a str) -> Result<Self::Output>;
 }
 
+/// Get just the text content of some HTML, removing elements that are hidden with display: none.
 pub(crate) fn get_clean_text(html_frag: String) -> String {
     let frag = Html::parse_fragment(&html_frag);
     get_clean_text_traverse(frag.root_element().traverse())
@@ -50,7 +52,7 @@ pub(crate) fn get_clean_text(html_frag: String) -> String {
         .to_string()
 }
 
-pub(crate) fn get_clean_text_traverse(traverse: Traverse<'_, Node>) -> String {
+fn get_clean_text_traverse(traverse: Traverse<'_, Node>) -> String {
     let mut s = String::new();
     let mut ignore_chain = VecDeque::new();
     for edge in traverse {
@@ -99,9 +101,65 @@ pub(crate) fn get_clean_text_traverse(traverse: Traverse<'_, Node>) -> String {
     s
 }
 
+/// Parses a frequency - always returns kHz
+pub(crate) fn parse_frequency<S: Into<String>>(data: S) -> Result<usize> {
+    let re = Regex::new(r"([0-9.]{3,7})\s*([kM])Hz").unwrap();
+    let data = data.into();
+
+    if let Some(caps) = re.captures(&data) {
+        let mut freq = caps[1].parse::<f32>().unwrap();
+        if &caps[2] == "M" {
+            freq *= 1000f32;
+        }
+        Ok(freq as usize)
+    } else {
+        Err(Error::ParseError("frequency", Box::new(data)))
+    }
+}
+
+/// Parses a latlong
+pub(crate) fn parse_latlong<S: Into<String>>(data: S) -> Result<(Option<f64>, Option<f64>)> {
+    let re = Regex::new(r"(?:([0-9.]{6,})([NnSs]))?\s*(?:([0-9.]{7,})([EeWw]))?").unwrap();
+    let data = data.into();
+    let mut lat = None;
+    let mut lon = None;
+    if let Some(caps) = re.captures(&data) {
+        if let Some(raw_lat) = caps.get(1) {
+            lat = Some(raw_lat.as_str().parse::<f64>().unwrap() / 10000f64);
+            if caps[2].to_lowercase() == "s".to_string() {
+                lat = Some(-lat.unwrap());
+            }
+        }
+        if let Some(raw_lon) = caps.get(3) {
+            lon = Some(raw_lon.as_str().parse::<f64>().unwrap() / 10000f64);
+            if caps[4].to_lowercase() == "w".to_string() {
+                lon = Some(-lon.unwrap());
+            }
+        }
+    }
+
+    if lat == None && lon == None {
+        Err(Error::ParseError("latlong", Box::new(data)))
+    } else {
+        Ok((lat, lon))
+    }
+}
+
+/// Parses an elevation, always returning ft
+pub(crate) fn parse_elevation<S: Into<String>>(data: S) -> Result<usize> {
+    let re = Regex::new(r"([0-9]+)\s*(?:ft|FT)").unwrap();
+    let data = data.into();
+
+    if let Some(caps) = re.captures(&data) {
+        Ok(caps[1].parse::<usize>().unwrap())
+    } else {
+        Err(Error::ParseError("elevation", Box::new(data)))
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use super::get_clean_text;
+    use super::{get_clean_text, parse_elevation, parse_frequency, parse_latlong};
 
     #[test]
     fn test_already_clean_string() {
@@ -131,5 +189,67 @@ mod tests {
         let intended_result = "ABERDEEN\nVOR/DME\n0.95°W(2022)\n2.00°W(2018)";
 
         assert_eq!(intended_result, get_clean_text(str.to_string()));
+    }
+
+    #[test]
+    fn test_parse_frequency() {
+        assert_eq!(123,    parse_frequency("123 kHz").unwrap());
+        assert_eq!(123000, parse_frequency("123 MHz").unwrap());
+        assert_eq!(123456, parse_frequency("123.456 MHz").unwrap());
+        assert_eq!(123456, parse_frequency("123456 kHz").unwrap());
+        assert_eq!(123000, parse_frequency("123MHz").unwrap());
+    }
+
+    #[test]
+    fn test_parse_elevation() {
+        assert_eq!(10, parse_elevation("10ft").unwrap());
+        assert_eq!(10, parse_elevation("10 ft").unwrap());
+        assert_eq!(10, parse_elevation("10 FT").unwrap());
+        assert!(parse_elevation("10M").is_err());
+    }
+
+    #[test]
+    fn test_parse_latlong() {
+        assert_eq!(
+            (Some(57.1209), Some(2.1153)),
+            parse_latlong("571209N 0021153E").unwrap()
+        );
+        assert_eq!(
+            (Some(57.1209), Some(-2.1153)),
+            parse_latlong("571209N 0021153W").unwrap()
+        );
+        assert_eq!(
+            (Some(-57.1209), Some(2.1153)),
+            parse_latlong("571209S 0021153E").unwrap()
+        );
+        assert_eq!(
+            (Some(-57.1209), Some(-2.1153)),
+            parse_latlong("571209S 0021153W").unwrap()
+        );
+
+        assert_eq!(
+            (Some(57.1209), Some(2.1153)),
+            parse_latlong("571209n 0021153e").unwrap()
+        );
+        assert_eq!(
+            (Some(57.1209), Some(-2.1153)),
+            parse_latlong("571209n 0021153w").unwrap()
+        );
+        assert_eq!(
+            (Some(-57.1209), Some(2.1153)),
+            parse_latlong("571209s 0021153e").unwrap()
+        );
+        assert_eq!(
+            (Some(-57.1209), Some(-2.1153)),
+            parse_latlong("571209s 0021153w").unwrap()
+        );
+
+        assert_eq!((Some(57.1209), None), parse_latlong("571209N").unwrap());
+        assert_eq!((Some(-57.1209), None), parse_latlong("571209S").unwrap());
+        assert_eq!((None, Some(2.1153)), parse_latlong("0021153E").unwrap());
+        assert_eq!((None, Some(-2.1153)), parse_latlong("0021153W").unwrap());
+
+        assert_eq!((Some(57.120962), None), parse_latlong("571209.62N").unwrap());
+        assert_eq!((None, Some(2.115312)), parse_latlong("0021153.12E").unwrap());
     }
 }
