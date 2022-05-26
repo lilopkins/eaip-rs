@@ -27,10 +27,8 @@ impl<'a> Parser<'a> for Intersections {
 
         let mut intersections = Vec::new();
         for row in &table {
-            let mut i = 0;
-
             let mut intersection = Intersection::default();
-            for cell in row {
+            for (i, cell) in row.into_iter().enumerate() {
                 if i == 0 {
                     // Column 1 contains name
                     let clean = get_clean_text(cell.clone());
@@ -38,28 +36,26 @@ impl<'a> Parser<'a> for Intersections {
                 } else if i == 1 {
                     // Column 2 contains lat long
                     let clean = get_clean_text(cell.clone());
-                    for line in clean.split("\n") {
-                        if line.ends_with("N") {
+                    for line in clean.split('\n') {
+                        if line.ends_with('N') {
                             let lat = &line[0..(line.len() - 1)];
                             let lat = lat.parse::<f32>().unwrap();
                             intersection.latitude = lat / 10000f32;
-                        } else if line.ends_with("S") {
+                        } else if line.ends_with('S') {
                             let lat = &line[0..(line.len() - 1)];
                             let lat = lat.parse::<f32>().unwrap();
                             intersection.latitude = lat / -10000f32;
-                        } else if line.ends_with("E") {
+                        } else if line.ends_with('E') {
                             let lon = &line[0..(line.len() - 1)];
                             let lon = lon.parse::<f32>().unwrap();
                             intersection.longitude = lon / 10000f32;
-                        } else if line.ends_with("W") {
+                        } else if line.ends_with('W') {
                             let lon = &line[0..(line.len() - 1)];
                             let lon = lon.parse::<f32>().unwrap();
                             intersection.longitude = lon / -10000f32;
                         }
                     }
                 }
-
-                i += 1;
             }
 
             if intersection != Intersection::default() {

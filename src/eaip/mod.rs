@@ -31,7 +31,7 @@ impl EAIP {
         typ: EAIPType,
     ) -> Result<String, reqwest::Error> {
         let airac = AIRAC::current();
-        Ok(self.get_page(airac, part, typ).await?)
+        self.get_page(airac, part, typ).await
     }
 
     /// Get a page from an eAIP for the specified AIRAC.
@@ -43,7 +43,7 @@ impl EAIP {
     ) -> Result<String, reqwest::Error> {
         let url = self.generate_url(airac, part, typ);
         log::debug!("Getting page: {}", url);
-        Ok(reqwest::get(url).await?.text().await?)
+        reqwest::get(url).await?.text().await
     }
 
     /// Generate a URL within this eAIP

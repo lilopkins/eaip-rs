@@ -65,7 +65,7 @@ impl<'a> Parser<'a> for Airport {
             }
             let title_elem = title_elem.unwrap();
             let clean = get_clean_text(title_elem.inner_html());
-            let title_parts = clean.split("—").collect::<Vec<&str>>();
+            let title_parts = clean.split('—').collect::<Vec<&str>>();
             airport.icao = title_parts[0].trim().to_string();
             airport.name = title_parts[1].trim().to_string();
 
@@ -84,22 +84,22 @@ impl<'a> Parser<'a> for Airport {
                         let lat_cap = latitude_re.captures(&clean).unwrap();
 
                         let lat = &lat_cap[1];
-                        if lat.ends_with("N") {
+                        if lat.ends_with('N') {
                             let lat = &lat[0..(lat.len() - 1)];
                             let lat = lat.parse::<f32>().unwrap();
                             airport.latitude = lat / 10000f32;
-                        } else if lat.ends_with("S") {
+                        } else if lat.ends_with('S') {
                             let lat = &lat[0..(lat.len() - 1)];
                             let lat = lat.parse::<f32>().unwrap();
                             airport.latitude = lat / -10000f32;
                         }
 
                         let long = &long_cap[1];
-                        if long.ends_with("E") {
+                        if long.ends_with('E') {
                             let long = &long[0..(long.len() - 1)];
                             let long = long.parse::<f32>().unwrap();
                             airport.longitude = long / 10000f32;
-                        } else if long.ends_with("W") {
+                        } else if long.ends_with('W') {
                             let long = &long[0..(long.len() - 1)];
                             let long = long.parse::<f32>().unwrap();
                             airport.longitude = long / -10000f32;

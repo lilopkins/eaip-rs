@@ -44,7 +44,7 @@ impl<'a> Parser<'a> for Airways {
             }
             let designator = designator.unwrap();
             let clean = get_clean_text(designator.inner_html());
-            let parts = clean.split("\n").collect::<Vec<&str>>();
+            let parts = clean.split('\n').collect::<Vec<&str>>();
             airway.designator = parts[0].to_string();
 
             for waypoint in tbody.select(&waypoint_selector) {
@@ -67,8 +67,7 @@ impl<'a> Parser<'a> for Airways {
                 }
             }
 
-            let mut i = 0;
-            for detail in tbody.select(&detail_selector) {
+            for (i, detail) in tbody.select(&detail_selector).enumerate() {
                 if let Some(upper) = detail.select(&upper_limit_selector).next() {
                     let upper = get_clean_text(upper.inner_html());
                     airway.waypoints[i].upper_limit = upper;
@@ -78,8 +77,6 @@ impl<'a> Parser<'a> for Airways {
                     let lower = get_clean_text(lower.inner_html());
                     airway.waypoints[i].lower_limit = lower;
                 }
-
-                i += 1;
             }
 
             if airway != Airway::default() {

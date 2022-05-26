@@ -60,7 +60,7 @@ pub(crate) fn get_clean_text_traverse(traverse: Traverse<'_, Node>) -> String {
                     Node::Element(e) => {
                         // if <br>, newline
                         if e.name() == "br" || e.name() == "p" {
-                            if !s.ends_with("\n") {
+                            if !s.ends_with('\n') {
                                 s += "\n";
                             }
                         } else if let Some(attr) = e.attr("style") {
@@ -72,7 +72,7 @@ pub(crate) fn get_clean_text_traverse(traverse: Traverse<'_, Node>) -> String {
                         }
                     }
                     Node::Text(t) => {
-                        if ignore_chain.len() == 0 {
+                        if ignore_chain.is_empty() {
                             s += &*t.trim();
                         }
                     }
@@ -82,17 +82,15 @@ pub(crate) fn get_clean_text_traverse(traverse: Traverse<'_, Node>) -> String {
             Edge::Close(node) => {
                 // if matches end of ignore chain, pop_front
                 if let Node::Element(e) = node.value() {
-                    if !s.ends_with("\n") {
+                    if !s.ends_with('\n') {
                         let inline_elems = vec!["span", "strong", "i", "em"];
                         if !inline_elems.contains(&&*e.name().to_lowercase()) {
                             s += "\n";
                         }
                     }
 
-                    if ignore_chain.len() > 0 {
-                        if e.name() == ignore_chain[0] {
-                            ignore_chain.pop_front().unwrap();
-                        }
+                    if !ignore_chain.is_empty() && e.name() == ignore_chain[0] {
+                        ignore_chain.pop_front().unwrap();
                     }
                 }
             }

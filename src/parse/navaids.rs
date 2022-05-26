@@ -34,7 +34,7 @@ impl<'a> Parser<'a> for Navaids {
                 if i == 0 {
                     // Column 1 contains name and type
                     let clean = get_clean_text(cell.clone());
-                    let lines = clean.split("\n").collect::<Vec<&str>>();
+                    let lines = clean.split('\n').collect::<Vec<&str>>();
                     navaid.name = lines[0].trim().to_string();
                     let kind = lines[1].trim();
                     let typ = if kind == "VOR" {
@@ -45,7 +45,7 @@ impl<'a> Parser<'a> for Navaids {
                         NavAidKind::DME
                     } else if kind == "NDB" {
                         NavAidKind::NDB
-                    } else if kind == "" {
+                    } else if kind.is_empty() {
                         continue 'row;
                     } else {
                         panic!("Unknown NavAidKind: {}", kind)
@@ -57,7 +57,7 @@ impl<'a> Parser<'a> for Navaids {
                 } else if i == 2 {
                     // Column 3 contains frequency
                     let clean = get_clean_text(cell.clone());
-                    for line in clean.split("\n") {
+                    for line in clean.split('\n') {
                         if line.ends_with("MHz") {
                             let freq = &line[0..(line.len() - 3)];
                             let freq = freq.parse::<f32>().unwrap();
@@ -72,20 +72,20 @@ impl<'a> Parser<'a> for Navaids {
                 } else if i == 4 {
                     // Column 5 contains lat long
                     let clean = get_clean_text(cell.clone());
-                    for line in clean.split("\n") {
-                        if line.ends_with("N") {
+                    for line in clean.split('\n') {
+                        if line.ends_with('N') {
                             let lat = &line[0..(line.len() - 1)];
                             let lat = lat.parse::<f32>().unwrap();
                             navaid.latitude = lat / 10000f32;
-                        } else if line.ends_with("S") {
+                        } else if line.ends_with('S') {
                             let lat = &line[0..(line.len() - 1)];
                             let lat = lat.parse::<f32>().unwrap();
                             navaid.latitude = lat / -10000f32;
-                        } else if line.ends_with("E") {
+                        } else if line.ends_with('E') {
                             let long = &line[0..(line.len() - 1)];
                             let long = long.parse::<f32>().unwrap();
                             navaid.longitude = long / 10000f32;
-                        } else if line.ends_with("W") {
+                        } else if line.ends_with('W') {
                             let long = &line[0..(line.len() - 1)];
                             let long = long.parse::<f32>().unwrap();
                             navaid.longitude = long / -10000f32;
