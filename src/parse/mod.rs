@@ -113,7 +113,7 @@ pub(crate) fn parse_frequency<S: Into<String>>(data: S) -> Result<usize> {
         }
         Ok(freq as usize)
     } else {
-        Err(Error::ParseError("frequency", Box::new(data)))
+        Err(Error::ParseError("frequency", data))
     }
 }
 
@@ -139,7 +139,7 @@ pub(crate) fn parse_latlong<S: Into<String>>(data: S) -> Result<(Option<f64>, Op
     }
 
     if lat == None && lon == None {
-        Err(Error::ParseError("latlong", Box::new(data)))
+        Err(Error::ParseError("latlong", data))
     } else {
         Ok((lat, lon))
     }
@@ -153,7 +153,7 @@ pub(crate) fn parse_elevation<S: Into<String>>(data: S) -> Result<usize> {
     if let Some(caps) = re.captures(&data) {
         Ok(caps[1].parse::<usize>().unwrap())
     } else {
-        Err(Error::ParseError("elevation", Box::new(data)))
+        Err(Error::ParseError("elevation", data))
     }
 }
 
@@ -193,7 +193,7 @@ mod tests {
 
     #[test]
     fn test_parse_frequency() {
-        assert_eq!(123,    parse_frequency("123 kHz").unwrap());
+        assert_eq!(123, parse_frequency("123 kHz").unwrap());
         assert_eq!(123000, parse_frequency("123 MHz").unwrap());
         assert_eq!(123456, parse_frequency("123.456 MHz").unwrap());
         assert_eq!(123456, parse_frequency("123456 kHz").unwrap());
@@ -249,7 +249,13 @@ mod tests {
         assert_eq!((None, Some(2.1153)), parse_latlong("0021153E").unwrap());
         assert_eq!((None, Some(-2.1153)), parse_latlong("0021153W").unwrap());
 
-        assert_eq!((Some(57.120962), None), parse_latlong("571209.62N").unwrap());
-        assert_eq!((None, Some(2.115312)), parse_latlong("0021153.12E").unwrap());
+        assert_eq!(
+            (Some(57.120962), None),
+            parse_latlong("571209.62N").unwrap()
+        );
+        assert_eq!(
+            (None, Some(2.115312)),
+            parse_latlong("0021153.12E").unwrap()
+        );
     }
 }

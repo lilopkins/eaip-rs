@@ -1,3 +1,5 @@
+use std::fmt::{Display, Debug};
+
 /// A result type, using the [`Error`] enum.
 pub type Result<T> = std::result::Result<T, Error>;
 
@@ -13,7 +15,7 @@ pub enum Error {
     /// The data cannot be scraped for the reason given.
     CannotScrapeData(&'static str),
     /// Some data cannot be parsed. The argument says what data.
-    ParseError(&'static str, Box<dyn std::fmt::Debug>),
+    ParseError(&'static str, String),
 }
 
 impl std::error::Error for Error {}
@@ -22,7 +24,7 @@ impl std::fmt::Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
             Self::EAIPFetchError(e) => {
-                write!(f, "There was an error fetching data from the AIP: {}", e)
+                write!(f, "There was an error fetching data from the AIP: {:?}", e)
             }
             Self::EAIPInvalidBaseURL(e) => {
                 write!(f, "There was an error parsing the AIP base URL: {}", e)

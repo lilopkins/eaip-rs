@@ -49,4 +49,5 @@ tokio = { version = "1.18", optional = true }
 url = "2.2"
 
 [dev-dependencies]
+anyhow = "1.0.57"
 tokio = { version = "1.18", features = [ "rt", "rt-multi-thread", "macros" ] }
