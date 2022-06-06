@@ -1,8 +1,7 @@
-use table_extract::Table;
-
 use crate::parse::{get_clean_text, parse_frequency};
 use crate::prelude::*;
 use async_trait::async_trait;
+use scraper::{Html, Selector};
 
 use super::{parse_elevation, parse_latlong};
 
@@ -26,21 +25,23 @@ impl<'a> Parser<'a> for Navaids {
     type Output = Self;
 
     fn parse(data: &'a str) -> Result<Self::Output> {
-        let table = Table::find_first(data);
-        if table.is_none() {
-            return Err(Error::CannotScrapeData("base table is not present"));
-        }
-        let table = table.unwrap();
+        let html = Html::parse_document(data);
+        let table_content_selector = Selector::parse("table > tbody").unwrap();
+        let tr_selector = Selector::parse("tr").unwrap();
+        let td_selector = Selector::parse("td").unwrap();
+
+        let table = html
+            .select(&table_content_selector)
+            .next()
+            .ok_or(Error::CannotScrapeData("base table not present"))?;
 
         let mut navaids = Vec::new();
-        'row: for row in &table {
-            let mut i = 0;
-
+        'row: for row in table.select(&tr_selector) {
             let mut navaid = NavAid::default();
-            for cell in row {
+            for (i, cell) in row.select(&td_selector).enumerate() {
                 if i == 0 {
                     // Column 1 contains name and type
-                    let clean = get_clean_text(cell.clone());
+                    let clean = get_clean_text(cell.inner_html());
                     let lines = clean.split('\n').collect::<Vec<&str>>();
                     navaid.name = lines[0].trim().to_string();
                     let kind = lines[1].trim();
@@ -60,14 +61,14 @@ impl<'a> Parser<'a> for Navaids {
                     navaid.kind = typ;
                 } else if i == 1 {
                     // Column 2 contains ID
-                    navaid.id = get_clean_text(cell.clone());
+                    navaid.id = get_clean_text(cell.inner_html());
                 } else if i == 2 {
                     // Column 3 contains frequency
-                    let clean = get_clean_text(cell.clone());
+                    let clean = get_clean_text(cell.inner_html());
                     navaid.frequency_khz = parse_frequency(clean)?;
                 } else if i == 4 {
                     // Column 5 contains lat long
-                    let clean = get_clean_text(cell.clone());
+                    let clean = get_clean_text(cell.inner_html());
                     let (lat, lon) = parse_latlong(clean)?;
                     if let Some(lat) = lat {
                         navaid.latitude = lat;
@@ -77,11 +78,9 @@ impl<'a> Parser<'a> for Navaids {
                     }
                 } else if i == 5 {
                     // Column 6 contains elevation
-                    let clean = get_clean_text(cell.clone());
+                    let clean = get_clean_text(cell.inner_html());
                     navaid.elevation = parse_elevation(clean).unwrap_or(0);
                 }
-
-                i += 1;
             }
 
             if navaid != NavAid::default() {

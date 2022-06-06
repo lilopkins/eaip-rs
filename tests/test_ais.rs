@@ -1,7 +1,7 @@
 #[cfg(feature = "test-online")]
 use airac::AIRAC;
 #[cfg(feature = "test-online")]
-use anyhow::{Context, Result};
+use anyhow::Context;
 #[cfg(feature = "test-online")]
 use eaip::prelude::*;
 
@@ -19,7 +19,7 @@ macro_rules! test_ais {
             let _navaids = Navaids::from_eaip(eaip, airac.clone())
                 .await
                 .with_context(|| {
-                    eaip.get_page(
+                    eaip.generate_url(
                         airac.clone(),
                         Part::EnRoute(ENR::RadioNavAids(1)),
                         EAIPType::HTML,
@@ -29,7 +29,7 @@ macro_rules! test_ais {
             let _intersections = Intersections::from_eaip(eaip, airac.clone())
                 .await
                 .with_context(|| {
-                    eaip.get_page(
+                    eaip.generate_url(
                         airac.clone(),
                         Part::EnRoute(ENR::RadioNavAids(4)),
                         EAIPType::HTML,
@@ -39,7 +39,7 @@ macro_rules! test_ais {
             let _airways = Airways::from_eaip(eaip, airac.clone())
                 .await
                 .with_context(|| {
-                    eaip.get_page(
+                    eaip.generate_url(
                         airac.clone(),
                         Part::EnRoute(ENR::ATSRoutes(3)),
                         EAIPType::HTML,
@@ -49,7 +49,7 @@ macro_rules! test_ais {
             let airports = Airports::from_eaip(eaip, airac.clone())
                 .await
                 .with_context(|| {
-                    eaip.get_page(
+                    eaip.generate_url(
                         airac.clone(),
                         Part::Aerodromes(AD::TableOfContents),
                         EAIPType::HTML,
@@ -60,7 +60,7 @@ macro_rules! test_ais {
                 let _airport = Airport::from_eaip(eaip, airac.clone(), airport.icao().to_string())
                     .await
                     .with_context(|| {
-                        eaip.get_page(
+                        eaip.generate_url(
                             airac.clone(),
                             Part::Aerodromes(AD::Aerodromes(airport.icao().to_string())),
                             EAIPType::HTML,
@@ -74,7 +74,7 @@ macro_rules! test_ais {
             let _navaids = Navaids::from_eaip(eaip, airac.clone())
                 .await
                 .with_context(|| {
-                    eaip.get_page(
+                    eaip.generate_url(
                         airac.clone(),
                         Part::EnRoute(ENR::RadioNavAids(1)),
                         EAIPType::HTML,
@@ -84,7 +84,7 @@ macro_rules! test_ais {
             let _intersections = Intersections::from_eaip(eaip, airac.clone())
                 .await
                 .with_context(|| {
-                    eaip.get_page(
+                    eaip.generate_url(
                         airac.clone(),
                         Part::EnRoute(ENR::RadioNavAids(4)),
                         EAIPType::HTML,
@@ -94,7 +94,7 @@ macro_rules! test_ais {
             let _airways = Airways::from_eaip(eaip, airac.clone())
                 .await
                 .with_context(|| {
-                    eaip.get_page(
+                    eaip.generate_url(
                         airac.clone(),
                         Part::EnRoute(ENR::ATSRoutes(3)),
                         EAIPType::HTML,
@@ -104,7 +104,7 @@ macro_rules! test_ais {
             let airports = Airports::from_eaip(eaip, airac.clone())
                 .await
                 .with_context(|| {
-                    eaip.get_page(
+                    eaip.generate_url(
                         airac.clone(),
                         Part::Aerodromes(AD::TableOfContents),
                         EAIPType::HTML,
@@ -115,7 +115,7 @@ macro_rules! test_ais {
                 let _airport = Airport::from_eaip(eaip, airac.clone(), airport.icao().to_string())
                     .await
                     .with_context(|| {
-                        eaip.get_page(
+                        eaip.generate_url(
                             airac.clone(),
                             Part::Aerodromes(AD::Aerodromes(airport.icao().to_string())),
                             EAIPType::HTML,

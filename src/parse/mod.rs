@@ -126,13 +126,13 @@ pub(crate) fn parse_latlong<S: Into<String>>(data: S) -> Result<(Option<f64>, Op
     if let Some(caps) = re.captures(&data) {
         if let Some(raw_lat) = caps.get(1) {
             lat = Some(raw_lat.as_str().parse::<f64>().unwrap() / 10000f64);
-            if caps[2].to_lowercase() == "s".to_string() {
+            if caps[2].to_lowercase() == *"s" {
                 lat = Some(-lat.unwrap());
             }
         }
         if let Some(raw_lon) = caps.get(3) {
             lon = Some(raw_lon.as_str().parse::<f64>().unwrap() / 10000f64);
-            if caps[4].to_lowercase() == "w".to_string() {
+            if caps[4].to_lowercase() == *"w" {
                 lon = Some(-lon.unwrap());
             }
         }

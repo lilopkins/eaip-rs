@@ -1,4 +1,4 @@
-use std::fmt::{Display, Debug};
+use std::fmt::Debug;
 
 /// A result type, using the [`Error`] enum.
 pub type Result<T> = std::result::Result<T, Error>;

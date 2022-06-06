@@ -1,7 +1,6 @@
-use table_extract::Table;
-
 use crate::{parse::get_clean_text, prelude::*};
 use async_trait::async_trait;
+use scraper::{Html, Selector};
 
 use super::parse_latlong;
 
@@ -25,26 +24,30 @@ impl<'a> Parser<'a> for Intersections {
     type Output = Self;
 
     fn parse(data: &'a str) -> Result<Self::Output> {
-        let table = Table::find_first(data);
-        if table.is_none() {
-            return Err(Error::CannotScrapeData("base table is not present"));
-        }
-        let table = table.unwrap();
+        let html = Html::parse_document(data);
+        let table_content_selector = Selector::parse("table > tbody").unwrap();
+        let intersection_tr_selector = Selector::parse("tr.Table-row-type-3").unwrap();
+        let td_selector = Selector::parse("td").unwrap();
+
+        let table = html
+            .select(&table_content_selector)
+            .next()
+            .ok_or(Error::CannotScrapeData("base table not present"))?;
 
         let mut intersections = Vec::new();
-        'row: for row in &table {
+        'row: for row in table.select(&intersection_tr_selector) {
             let mut intersection = Intersection::default();
-            for (i, cell) in row.into_iter().enumerate() {
+            for (i, cell) in row.select(&td_selector).enumerate() {
                 if i == 0 {
                     // Column 1 contains name
-                    let clean = get_clean_text(cell.clone());
+                    let clean = get_clean_text(cell.inner_html());
                     if clean.is_empty() {
                         continue 'row;
                     }
                     intersection.designator = clean;
                 } else if i == 1 {
                     // Column 2 contains lat long
-                    let clean = get_clean_text(cell.clone());
+                    let clean = get_clean_text(cell.inner_html());
                     for line in clean.split('\n') {
                         let (lat, lon) = parse_latlong(line)?;
                         if let Some(lat) = lat {

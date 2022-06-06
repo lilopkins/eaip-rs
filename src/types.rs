@@ -184,8 +184,8 @@ impl Airport {
     /// Canonicalise chart URLs so they aren't relative.
     pub fn canonicalise_chart_urls(&mut self, eaip: &EAIP, airac: AIRAC, part: Part) -> Result<()> {
         let base_url = url::Url::parse(&eaip.generate_url(airac, part, EAIPType::HTML));
-        if base_url.is_err() {
-            return Err(Error::EAIPInvalidBaseURL(base_url.unwrap_err()));
+        if let Err(err) = base_url {
+            return Err(Error::EAIPInvalidBaseURL(err));
         }
         let base_url = base_url.unwrap();
         for chart in &mut self.charts {
