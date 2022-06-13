@@ -1,3 +1,4 @@
+use chrono::Duration;
 use lazy_static::lazy_static;
 
 use super::*;
@@ -42,6 +43,6 @@ lazy_static! {
     pub static ref NL: NamedEAIP = NamedEAIP {
         country: "NL",
         name: "LVNL",
-        eaip: EAIP::new("https://eaip.lvnl.nl", "EH", "en-GB")
+        eaip: EAIP::new_with_offset("https://eaip.lvnl.nl", "EH", "en-GB", Duration::weeks(2))
     };
 }

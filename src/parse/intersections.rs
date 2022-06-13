@@ -47,7 +47,7 @@ impl<'a> Parser<'a> for Intersections {
                     intersection.designator = clean;
                 } else if i == 1 {
                     // Column 2 contains lat long
-                    let clean = get_clean_text(cell.inner_html());
+                    let clean = get_clean_text(cell.inner_html()).replace('\n', "");
                     for line in clean.split('\n') {
                         let (lat, lon) = parse_latlong(line)?;
                         if let Some(lat) = lat {

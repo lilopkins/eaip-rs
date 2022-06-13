@@ -1,5 +1,9 @@
 use std::fmt::Debug;
 
+use airac::AIRAC;
+
+use crate::parts::{EAIPType, Part};
+
 /// A result type, using the [`Error`] enum.
 pub type Result<T> = std::result::Result<T, Error>;
 
@@ -8,6 +12,8 @@ pub type Result<T> = std::result::Result<T, Error>;
 pub enum Error {
     /// An error fetching data from an eAIP
     EAIPFetchError(reqwest::Error),
+    /// A page is missing from the eAIP
+    EAIPMissingPage(AIRAC, Part, EAIPType),
     /// An error parsing the base_url of an EAIP when canonicalising URLs
     EAIPInvalidBaseURL(url::ParseError),
     /// An error while canonicalising URLs in joining the base URL to the chart URL
@@ -26,6 +32,11 @@ impl std::fmt::Display for Error {
             Self::EAIPFetchError(e) => {
                 write!(f, "There was an error fetching data from the AIP: {:?}", e)
             }
+            Self::EAIPMissingPage(airac, part, typ) => write!(
+                f,
+                "The AIP does not have a page for {} {} {}",
+                airac, part, typ
+            ),
             Self::EAIPInvalidBaseURL(e) => {
                 write!(f, "There was an error parsing the AIP base URL: {}", e)
             }

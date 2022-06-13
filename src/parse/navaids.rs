@@ -45,14 +45,16 @@ impl<'a> Parser<'a> for Navaids {
                     let lines = clean.split('\n').collect::<Vec<&str>>();
                     navaid.name = lines[0].trim().to_string();
                     let kind = lines[1].trim();
-                    let typ = if kind == "VOR" {
+                    let typ = if kind == "VOR" || kind == "DVOR" {
                         NavAidKind::VOR
-                    } else if kind == "VOR/DME" {
+                    } else if kind == "VOR/DME" || kind == "DVOR/DME" {
                         NavAidKind::VORDME
                     } else if kind == "DME" {
                         NavAidKind::DME
                     } else if kind == "NDB" {
                         NavAidKind::NDB
+                    } else if kind == "TACAN" {
+                        NavAidKind::TACAN
                     } else if kind.is_empty() {
                         continue 'row;
                     } else {

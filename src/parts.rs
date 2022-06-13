@@ -2,6 +2,7 @@ use airac::{Datelike, AIRAC};
 use std::fmt::Display;
 
 /// The type of file to get from the eAIP
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum EAIPType {
     /// An HTML file
     HTML,
@@ -31,6 +32,8 @@ pub enum Part {
     EnRoute(ENR),
     /// Aerodromes (AD)
     Aerodromes(AD),
+    /// Raw - go to a page by it's URL directly.
+    Raw(String),
 }
 
 impl Display for Part {
@@ -39,6 +42,7 @@ impl Display for Part {
             Self::General(g) => write!(f, "GEN-{}", g),
             Self::EnRoute(e) => write!(f, "ENR-{}", e),
             Self::Aerodromes(a) => write!(f, "AD-{}", a),
+            Self::Raw(s) => write!(f, "{}", s),
         }
     }
 }
@@ -134,10 +138,13 @@ pub fn generate_location<S: AsRef<str> + Display>(
     locale: S,
     typ: EAIPType,
 ) -> String {
-    format!(
-        "/{}/eAIP/{}-{}-{}.{}",
-        typ, country_code, section, locale, typ
-    )
+    match section {
+        Part::Raw(s) => format!("/{}/eAIP/{}", typ, s),
+        _ => format!(
+            "/{}/eAIP/{}-{}-{}.{}",
+            typ, country_code, section, locale, typ
+        ),
+    }
 }
 
 /// Generate the location in an eAIP package for a particular section
@@ -153,6 +160,25 @@ pub fn generate_location_with_airac<S: AsRef<str> + Display>(
         airac.starts().year(),
         airac.starts().month(),
         airac.starts().day(),
+        generate_location(country_code, section, locale, typ)
+    )
+}
+
+/// Generate the location in an eAIP package for a particular section
+pub fn generate_location_with_airac_and_offseet<S: AsRef<str> + Display>(
+    airac: AIRAC,
+    offset: chrono::Duration,
+    country_code: S,
+    section: Part,
+    locale: S,
+    typ: EAIPType,
+) -> String {
+    let date = airac.starts() - offset;
+    format!(
+        "/{:04}-{:02}-{:02}-AIRAC{}",
+        date.year(),
+        date.month(),
+        date.day(),
         generate_location(country_code, section, locale, typ)
     )
 }

@@ -67,6 +67,8 @@ pub enum NavAidKind {
     VORDME,
     /// An NDB (non-directional beacon) navaid
     NDB,
+    /// A TACAN navaid, usually for military use
+    TACAN,
 }
 
 impl Default for NavAidKind {

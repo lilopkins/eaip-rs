@@ -65,6 +65,8 @@ fn get_clean_text_traverse(traverse: Traverse<'_, Node>) -> String {
                             if !s.ends_with('\n') {
                                 s += "\n";
                             }
+                        } else if e.name() == "del" {
+                            ignore_chain.push_front(e.name());
                         } else if let Some(attr) = e.attr("style") {
                             // if <... style="display: none">, push_front to ignore chain
                             if attr == "display: none;" {
@@ -104,6 +106,7 @@ fn get_clean_text_traverse(traverse: Traverse<'_, Node>) -> String {
 /// Parses a frequency - always returns kHz
 pub(crate) fn parse_frequency<S: Into<String>>(data: S) -> Result<usize> {
     let re = Regex::new(r"([0-9.]{3,7})\s*([kM])Hz").unwrap();
+    let ch_re = Regex::new(r"CH(\d+[XY])").unwrap();
     let data = data.into();
 
     if let Some(caps) = re.captures(&data) {
@@ -112,6 +115,32 @@ pub(crate) fn parse_frequency<S: Into<String>>(data: S) -> Result<usize> {
             freq *= 1000f32;
         }
         Ok(freq as usize)
+    } else if let Some(caps) = ch_re.captures(&data) {
+        let channel = &caps[1];
+        let typ = channel.chars().last().unwrap();
+        let f = &channel[0..channel.len() - 1];
+        let f = f.parse::<usize>().unwrap();
+        match typ {
+            'X' => {
+                if f <= 16 {
+                    Ok(134300 + (f * 100))
+                } else if f <= 59 {
+                    Ok(106300 + (f * 100))
+                } else if f <= 69 {
+                    Ok(127300 + (f * 100))
+                } else {
+                    Ok(105300 + (f * 100))
+                }
+            }
+            'Y' => {
+                if f < 70 {
+                    Ok(106350 + (f * 100))
+                } else {
+                    Ok(105350 + (f * 100))
+                }
+            }
+            _ => Err(Error::ParseError("channel type", data)),
+        }
     } else {
         Err(Error::ParseError("frequency", data))
     }
@@ -120,6 +149,7 @@ pub(crate) fn parse_frequency<S: Into<String>>(data: S) -> Result<usize> {
 /// Parses a latlong
 pub(crate) fn parse_latlong<S: Into<String>>(data: S) -> Result<(Option<f64>, Option<f64>)> {
     let re = Regex::new(r"(?:([0-9.]{6,})([NnSs]))?\s*(?:([0-9.]{7,})([EeWw]))?").unwrap();
+    let dms_re = Regex::new(r#"(?:(\d+)°(\d+)'([\d.]+)"([NnSs]))?\s*(?:(\d+)°(\d+)'([\d.]+)"([EeWw]))?"#).unwrap();
     let data = data.into();
     let mut lat = None;
     let mut lon = None;
@@ -133,6 +163,29 @@ pub(crate) fn parse_latlong<S: Into<String>>(data: S) -> Result<(Option<f64>, Op
         if let Some(raw_lon) = caps.get(3) {
             lon = Some(raw_lon.as_str().parse::<f64>().unwrap() / 10000f64);
             if caps[4].to_lowercase() == *"w" {
+                lon = Some(-lon.unwrap());
+            }
+        }
+    }
+    if let Some(caps) = dms_re.captures(&data) {
+        if let Some(deg_lat) = caps.get(1) {
+            let deg_lat = deg_lat.as_str().parse::<f64>().unwrap();
+            let min_lat = caps.get(2).unwrap().as_str().parse::<f64>().unwrap();
+            let sec_lat = caps.get(3).unwrap().as_str().parse::<f64>().unwrap();
+            let dir_lat = caps.get(4).unwrap().as_str();
+            lat = Some(deg_lat + (min_lat / 60f64) + (sec_lat / 3600f64));
+            if dir_lat.to_lowercase() == *"s" {
+                lat = Some(-lat.unwrap());
+            }
+        }
+
+        if let Some(deg_lon) = caps.get(5) {
+            let deg_lon = deg_lon.as_str().parse::<f64>().unwrap();
+            let min_lon = caps.get(6).unwrap().as_str().parse::<f64>().unwrap();
+            let sec_lon = caps.get(7).unwrap().as_str().parse::<f64>().unwrap();
+            let dir_lon = caps.get(8).unwrap().as_str();
+            lon = Some(deg_lon + (min_lon / 60f64) + (sec_lon / 3600f64));
+            if dir_lon.to_lowercase() == *"w" {
                 lon = Some(-lon.unwrap());
             }
         }
@@ -257,5 +310,18 @@ mod tests {
             (None, Some(2.115312)),
             parse_latlong("0021153.12E").unwrap()
         );
+
+        assert_eq!(
+            (Some(57.12096), None),
+            parse_latlong("571209.6N").unwrap()
+        );
+        assert_eq!(
+            (None, Some(2.11531)),
+            parse_latlong("0021153.1E").unwrap()
+        );
+
+        if let Some(v) = parse_latlong(r#"50°50'13.60"N"#).unwrap().0 {
+            assert!(v - 50.83711 < 0.00001);
+        }
     }
 }

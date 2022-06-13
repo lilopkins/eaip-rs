@@ -30,4 +30,5 @@ aware that it may be under various licenses.
 
 The following is a list of AISs that this library is tested to work against.
 
-- NATS (UK, working 2022-05-25)
+- NATS (UK, working 2022-06-13)
+- LVNL (NL, working 2022-06-13)
