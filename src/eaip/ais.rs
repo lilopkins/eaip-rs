@@ -7,6 +7,8 @@ use super::*;
 pub struct NamedEAIP {
     country: &'static str,
     name: &'static str,
+    icao_prefix: &'static str,
+    url: &'static str,
     eaip: EAIP,
 }
 
@@ -25,6 +27,16 @@ impl NamedEAIP {
     pub fn eaip(&self) -> &EAIP {
         &self.eaip
     }
+
+    /// ICAO prefix. Every ICAO code within this AIS source starts with this.
+    pub fn icao_prefix(&self) -> &'static str {
+        self.icao_prefix
+    }
+
+    /// URL for this AIS source.
+    pub fn url(&self) -> &'static str {
+        self.url
+    }
 }
 
 lazy_static! {
@@ -37,12 +49,16 @@ lazy_static! {
     pub static ref GB: NamedEAIP = NamedEAIP {
         country: "GB",
         name: "NATS",
+        icao_prefix: "EG",
+        url: "https://nats.aero",
         eaip: EAIP::new("https://www.aurora.nats.co.uk/htmlAIP/Publications", "EG", "en-GB")
     };
     /// The Netherlands: [LVNL](https://lvnl.nl)
     pub static ref NL: NamedEAIP = NamedEAIP {
         country: "NL",
         name: "LVNL",
+        icao_prefix: "EH",
+        url: "https://lvnl.nl",
         eaip: EAIP::new_with_offset("https://eaip.lvnl.nl", "EH", "en-GB", Duration::weeks(2))
     };
 }
